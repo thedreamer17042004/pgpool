@@ -1,0 +1,17 @@
+version: '1'
+
+services:
+  pgpool:
+    image: bitnamilegacy/pgpool:4.6.3
+    ports:
+      - "9999:5432"
+    environment:
+      - PGPOOL_BACKEND_NODES=0:host.docker.internal:5432
+      - PGPOOL_SR_CHECK_USER=postgres
+      - PGPOOL_SR_CHECK_PASSWORD=1234
+      - PGPOOL_POSTGRES_USERNAME=postgres
+      - PGPOOL_POSTGRES_PASSWORD=1234
+      - PGPOOL_ADMIN_USERNAME=admin
+      - PGPOOL_ADMIN_PASSWORD=admin
+      - PGPOOL_NUM_INIT_CHILDREN=1
+      - PGPOOL_MAX_POOL=4
