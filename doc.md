@@ -41,3 +41,8 @@ SELECT pg_reload_conf();
 select pg_backend_pid();
 
 show pool_processes;
+
+
+#  này tương đương với số connection tới backend
+PGPOOL_NUM_INIT_CHILDREN=5
+PGPOOL_MAX_POOL -> là max số connection được cache

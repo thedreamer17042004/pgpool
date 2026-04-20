@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  etcd:
+    image: quay.io/coreos/etcd:v3.5
+    container_name: etcd
+    environment:
+      - ALLOW_NONE_AUTHENTICATION=yes
+      - ETCD_ENABLE_V2=true
+    command: >
+      etcd -advertise-client-urls=http://etcd:2379
+           -listen-client-urls=http://0.0.0.0:2379
+    ports:
+      - "2379:2379"
+
+  pg1:
+    image: zalando/patroni
+    container_name: pg1
+    environment:
+      - PATRONI_NAME=pg1
+      - PATRONI_SCOPE=demo-cluster
+      - PATRONI_ETCD_HOSTS=etcd:2379
+
+      - PATRONI_POSTGRESQL_DATA_DIR=/home/postgres/pgdata
+      - PATRONI_POSTGRESQL_LISTEN=0.0.0.0:5432
+      - PATRONI_POSTGRESQL_CONNECT_ADDRESS=pg1:5432
+
+      - PATRONI_RESTAPI_LISTEN=0.0.0.0:8008
+      - PATRONI_RESTAPI_CONNECT_ADDRESS=pg1:8008
+
+      - PATRONI_SUPERUSER_USERNAME=postgres
+      - PATRONI_SUPERUSER_PASSWORD=1234
+
+      - PATRONI_REPLICATION_USERNAME=repl
+      - PATRONI_REPLICATION_PASSWORD=repl123
+
+    depends_on:
+      - etcd
+    ports:
+      - "5433:5432"
+
+  pg2:
+    image: zalando/patroni
+    container_name: pg2
+    environment:
+      - PATRONI_NAME=pg2
+      - PATRONI_SCOPE=demo-cluster
+      - PATRONI_ETCD_HOSTS=etcd:2379
+
+      - PATRONI_POSTGRESQL_DATA_DIR=/home/postgres/pgdata
+      - PATRONI_POSTGRESQL_LISTEN=0.0.0.0:5432
+      - PATRONI_POSTGRESQL_CONNECT_ADDRESS=pg2:5432
+
+      - PATRONI_RESTAPI_LISTEN=0.0.0.0:8008
+      - PATRONI_RESTAPI_CONNECT_ADDRESS=pg2:8008
+
+      - PATRONI_SUPERUSER_USERNAME=postgres
+      - PATRONI_SUPERUSER_PASSWORD=1234
+
+      - PATRONI_REPLICATION_USERNAME=repl
+      - PATRONI_REPLICATION_PASSWORD=repl123
+
+    depends_on:
+      - etcd
+    ports:
+      - "5434:5432"
