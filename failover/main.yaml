@@ -25,8 +25,6 @@ services:
       - POSTGRESQL_PASSWORD=1234
     ports:
       - "5434:5432"
-    volumes: 
-      - ./id_rsa_pgpool.pub:/tmp/id_rsa_pgpool.pub
 
   pgpool:
     image: bitnamilegacy/pgpool:4.6.3
@@ -46,9 +44,3 @@ services:
       - PGPOOL_ADMIN_PASSWORD=admin
       - PGPOOL_NUM_INIT_CHILDREN=100
       - PGPOOL_MAX_POOL=2
-      - PGPOOL_USER_CONF_FILE=/cus_pgpool.conf
-    volumes:
-      - ./failover.sh:/opt/bitnami/scripts/failover.sh
-      - ./cus_pgpool.conf:/cus_pgpool.conf
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./id_rsa_pgpool:/root/.ssh/id_rsa_pgpool
