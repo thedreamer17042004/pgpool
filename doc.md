@@ -49,3 +49,14 @@ PGPOOL_MAX_POOL -> là max số connection được cache
 
 # kiem tra trang thai service ssh
 service ssh status
+
+# cach de add user
+ groupadd -g 1001 postgres
+  useradd -u 1001 -g 1001 -m -d /home/postgres -s /bin/bash postgres
+
+   chown -R postgres:postgres /home/postgres/.ssh
+   chmod 700 /home/postgres/.ssh
+   chmod 600 /home/postgres/.ssh/id_rsa_pgpool
+
+<!-- copy file a sang b -->
+    cat /tmp/id_rsa_pgpool.pub >> /home/postgres/.ssh/authorized_keys
