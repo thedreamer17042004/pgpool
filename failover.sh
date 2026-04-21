@@ -1,6 +1,5 @@
 #!/bin/bash
 # This script is run by failover_command.
-
 set -o xtrace
 
 # Special values:
@@ -17,7 +16,6 @@ set -o xtrace
 # 11) %N = old primary node hostname
 # 12) %S = old primary node port number
 # 13) %% = '%' character
-
 FAILED_NODE_ID="$1"
 FAILED_NODE_HOST="$2"
 FAILED_NODE_PORT="$3"

@@ -11,9 +11,9 @@ services:
       - POSTGRESQL_PASSWORD=1234
     ports:
       - "5433:5432"
-
+  
   pg-slave:
-    image: bitnamilegacy/postgresql:latest
+    image: pgserver
     container_name: pg-slave
     depends_on:
       - pg-master
@@ -29,7 +29,7 @@ services:
       - ./id_rsa_pgpool.pub:/tmp/id_rsa_pgpool.pub
 
   pgpool:
-    image: bitnamilegacy/pgpool:4.6.3
+    image: pgpool
     container_name: pgpool
     depends_on:
       - pg-master

@@ -46,3 +46,6 @@ show pool_processes;
 #  này tương đương với số connection tới backend
 PGPOOL_NUM_INIT_CHILDREN=5
 PGPOOL_MAX_POOL -> là max số connection được cache
+
+# kiem tra trang thai service ssh
+service ssh status

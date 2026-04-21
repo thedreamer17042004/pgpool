@@ -1,0 +1,64 @@
+FROM bitnamilegacy/postgresql:latest
+
+USER root
+
+# =========================
+# 1. Install SSH server
+# =========================
+RUN install_packages openssh-server sudo
+# tao thu muc ssh runtime
+RUN mkdir -p /var/run/sshd
+# /var/run/sshd la thu muc ma sshd dung de luu file runtime VD: pid process id cua ssh ;-p nghia la cu tao thoa mai neu ma vd: /a/b neu ma 
+# ma b chua ton ton thhi tao a luon 
+
+# =========================
+# 2. Create user (Bitnami user)
+# =========================
+RUN useradd -m -s /bin/bash bitnami || true
+# useradd tao user moi
+# -m make home directory la tao luon thu muc hom cua user;/home/bitnami; 
+# -s la shell nghia la user dang nhap se dung bash
+# bitnami la ten user
+# || true nghia la neu user da ton tai thi exit luon 
+
+# 👉 nghĩa là:
+# Tạo user tên bitnami
+# tạo luôn home directory
+# dùng bash shell
+# nếu user đã tồn tại thì bỏ qua lỗi
+
+
+# dam bao home ton tai
+RUN mkdir -p /home/bitnami/.ssh && chown -R 1001:1001 /home/bitnami
+# Tạo thư mục SSH cho user bitnami
+# chown la change owner doi chu so hu file/thu muc
+# bitnami:bitnami; user so huu bitnami va group so huu bitnami
+# -r la ap dung cho all cac file con
+# chown -R bitnami:bitnami /home/bitnami --> đổi quyền sở hữu toàn bộ /home/bitnami sang user bitnami
+    
+# =========================
+# 3. SSH config
+# =========================
+RUN sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/sshd_config
+# sed la tool de tim va thay the text trong file
+# sed -i 's/old/new/' file ; s ->subsitute;old la chuoi can tim;new la chuoi thay the; i la edit truc tiep trong file(in-place)
+
+# =========================
+# 4. Copy entrypoint script
+# =========================
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
+# chmod = change mode (đổi quyền file)
+# +x la co quyen chay file 
+# --> biến file /start.sh thành file có thể chạy được
+
+# =========================
+# 5. Ports
+# =========================
+EXPOSE 5432 22
+
+# =========================
+# 6. Start both postgres + ssh
+# =========================
+CMD ["/start.sh"]

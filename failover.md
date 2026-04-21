@@ -83,3 +83,13 @@ ssh -o StrictHostKeyChecking=no -i /root/.ssh/id_rsa_pgpool root@pg-slave
 --fix loi khi ma bad permissions
 chmod 700 /root/.ssh
 chmod 600 /root/.ssh/id_rsa_pgpool
+
+-- de xem quyen doc ghi file
+ls -l filename
+
+-- showlog 
+ssh -vvv -i /root/.ssh/id_rsa_pgpool bitnami@pg-slave
+
+
+
+docker build -f Dockerfile.postgres -t postgres-custom .

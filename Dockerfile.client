@@ -1,0 +1,7 @@
+FROM bitnamilegacy/pgpool:4.6.3
+
+USER root
+
+RUN install_packages openssh-client
+
+USER 1001
