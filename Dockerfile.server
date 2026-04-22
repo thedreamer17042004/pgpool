@@ -6,6 +6,8 @@ USER root
 # 1. Install SSH server
 # =========================
 RUN install_packages openssh-server sudo
+
+
 # tao thu muc ssh runtime
 RUN mkdir -p /var/run/sshd
 # /var/run/sshd la thu muc ma sshd dung de luu file runtime VD: pid process id cua ssh ;-p nghia la cu tao thoa mai neu ma vd: /a/b neu ma 

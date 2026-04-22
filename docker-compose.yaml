@@ -13,8 +13,9 @@ services:
       - "5433:5432"
     volumes: 
       - ./id_rsa_pgpool.pub:/tmp/id_rsa_pgpool.pub
-      # - ./pg_master_data:/bitnami/postgresql
-
+    networks:
+      - pgnet
+          
   pg-slave:
     image: pgserver
     container_name: pg-slave
@@ -30,7 +31,26 @@ services:
       - "5434:5432"
     volumes: 
       - ./id_rsa_pgpool.pub:/tmp/id_rsa_pgpool.pub
-      # - ./pg_slave_data:/bitnami/postgresql
+    networks:
+      - pgnet
+
+  pg-slave-1:
+    image: pgserver
+    container_name: pg-slave-1
+    depends_on:
+      - pg-master
+    environment:
+      - POSTGRESQL_REPLICATION_MODE=slave
+      - POSTGRESQL_MASTER_HOST=pg-master
+      - POSTGRESQL_REPLICATION_USER=repl_user
+      - POSTGRESQL_REPLICATION_PASSWORD=repl_pass
+      - POSTGRESQL_PASSWORD=1234
+    ports:
+      - "5435:5432"
+    volumes: 
+      - ./id_rsa_pgpool.pub:/tmp/id_rsa_pgpool.pub
+    networks:
+      - pgnet
 
   pgpool:
     image: pgpool
@@ -38,11 +58,11 @@ services:
     depends_on:
       - pg-master
       - pg-slave
+      - pg-slave-1
     ports:
       - "9999:5432"
     environment:
-      - PGPOOL_BACKEND_NODES=0:pg-master:5432,1:pg-slave:5432
-      # - PGPOOL_BACKEND_NODES=0:pg-master:5432:/bitnami/postgresql/data,1:pg-slave:5432:/bitnami/postgresql/data
+      - PGPOOL_BACKEND_NODES=0:pg-master:5432,1:pg-slave:5432,2:pg-slave-1:5432
       - PGPOOL_SR_CHECK_USER=postgres
       - PGPOOL_SR_CHECK_PASSWORD=1234
       - PGPOOL_POSTGRES_USERNAME=postgres
@@ -54,8 +74,15 @@ services:
       - PGPOOL_USER_CONF_FILE=/cus_pgpool.conf
     volumes:
       - ./failover.sh:/opt/bitnami/scripts/failover.sh
+      - ./follow_primary.sh:/opt/bitnami/scripts/follow_primary.sh
       - ./cus_pgpool.conf:/cus_pgpool.conf
       - /var/run/docker.sock:/var/run/docker.sock
       - ./id_rsa_pgpool:/root/.ssh/id_rsa_pgpool
       - ./id_rsa_pgpool:/home/postgres/.ssh/id_rsa_pgpool
+    networks:
+      - pgnet
+
+
+networks:
+  pgnet:
 

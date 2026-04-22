@@ -1,3 +1,4 @@
+# trong production thi ok nhat la 2 replication chi doc va 1 master thoi lon hon thi 3 replication
 # Kết nối tới PostgreSQL ở localhost:5432 dùng username postgres vào database postgres(psql la command tool de ket noi va lam viec voi posgres)
 psql -h localhost -p 5432 -U postgres -d postgres
 # cach thoat khoi database 
@@ -60,3 +61,7 @@ service ssh status
 
 <!-- copy file a sang b -->
     cat /tmp/id_rsa_pgpool.pub >> /home/postgres/.ssh/authorized_keys
+
+
+<!-- how to find -->
+    find / -name postgresql.conf 2>/dev/null
