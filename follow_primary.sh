@@ -44,7 +44,7 @@ NEW_PRIMARY_NODE_PGDATA="${10}"
 PGHOME=/opt/bitnami/postgresql
 REPLUSER=repl
 PCP_USER=pgpool
-PGPOOL_PATH=/usr/bin
+PGPOOL_PATH=/opt/bitnami/pgpool/bin
 PCP_PORT=9898
 REPL_SLOT_NAME=$(echo ${NODE_HOST,,} | tr -- -. _)
 POSTGRESQL_STARTUP_USER=postgres
@@ -196,66 +196,50 @@ fi
 #     ${PGHOME}/bin/pg_ctl -l /dev/null -w -D ${NODE_PGDATA} start
 
 # "
-ssh -T ${SSH_OPTIONS} ${POSTGRESQL_STARTUP_USER}@${NODE_HOST} <<'EOF'
-set -euo pipefail
 
-# =========================
-# STOP POSTGRES CLEANLY
-# =========================
-PG_PID=$(head -1 /bitnami/postgresql/data/postmaster.pid 2>/dev/null || true)
+ssh -T ${SSH_OPTIONS} ${POSTGRESQL_STARTUP_USER}@${NODE_HOST} 'bash -s' <<EOF
+set -e
 
-if [ -n "$PG_PID" ]; then
-    kill -SIGINT "$PG_PID" 2>/dev/null || true
+PGDATA="${NODE_PGDATA}"
+PGHOME="${PGHOME}"
+RECOVERYCONF="${RECOVERYCONF}"
 
-    for i in $(seq 1 30); do
-        [ ! -f "/bitnami/postgresql/data/postmaster.pid" ] && break
-        sleep 1
-    done
-fi
 
-# =========================
-# PG_REWIND
-# =========================
-/opt/bitnami/postgresql/bin/pg_rewind -P \
-    -D "${NODE_PGDATA}" \
-    --source-server="user=${POSTGRESQL_STARTUP_USER} host=${NEW_PRIMARY_NODE_HOST} port=${NEW_PRIMARY_NODE_PORT} dbname=postgres"
+   ${PGHOME}/bin/pg_ctl -w -m f -D ${NODE_PGDATA} stop
 
-# =========================
-# CLEAN REPLICATION SLOT
-# =========================
-[ -d "${NODE_PGDATA}/pg_replslot" ] && rm -rf "${NODE_PGDATA}/pg_replslot/"*
+export PGPASSWORD="1234"
+# pg_rewind
 
-# =========================
-# CREATE RECOVERY CONF
-# =========================
-cat > "${RECOVERYCONF}" <<EOT
+\$PGHOME/bin/pg_rewind -P -D "\$PGDATA" \
+  --source-server="user=${POSTGRESQL_STARTUP_USER} host=${NEW_PRIMARY_NODE_HOST} port=${NEW_PRIMARY_NODE_PORT} dbname=postgres"
+
+rm -rf "\$PGDATA/pg_replslot/"*
+
+cat > "\$RECOVERYCONF" <<EOT
 primary_conninfo = 'host=${NEW_PRIMARY_NODE_HOST} port=${NEW_PRIMARY_NODE_PORT} user=${REPLUSER} application_name=${NODE_HOST}'
 recovery_target_timeline = 'latest'
 primary_slot_name = '${REPL_SLOT_NAME}'
 EOT
 
-# =========================
-# PG VERSION LOGIC
-# =========================
-if [ "${PGVERSION}" -ge 12 ]; then
+PG_VERSION=\$(${PGHOME}/bin/postgres -V | awk '{print \$3}' | cut -d. -f1)
 
-    sed -i "/include_if_exists.*myrecovery\.conf/d" "${NODE_PGDATA}/postgresql.conf"
-
-    echo "include_if_exists = '${RECOVERYCONF}'" >> "${NODE_PGDATA}/postgresql.conf"
-
-    touch "${NODE_PGDATA}/standby.signal"
-
+if [ "\$${PGVERSION}" -ge 12 ]; then
+    echo "include_if_exists = '\$RECOVERYCONF'" >> "\$${PGHOME}/postgresql.conf"
+    touch "\$PGDATA/standby.signal"
 else
-    echo "standby_mode = 'on'" >> "${RECOVERYCONF}"
+    echo "standby_mode = 'on'" >> "\$RECOVERYCONF"
 fi
 
-# =========================
-# START POSTGRES
-# =========================
-/opt/bitnami/postgresql/bin/pg_ctl -l /dev/null -w \
-    -D "${NODE_PGDATA}" start
+exec \$PGHOME/bin/pg_ctl \
+  -D "\$PGDATA" \
+  -l /tmp/postgres.log \
+  -w \
+   -o "-c config_file=/opt/bitnami/postgresql/conf/postgresql.conf \
+      -c hba_file=/opt/bitnami/postgresql/conf/pg_hba.conf" \
+  start
 
 EOF
+
 
 # If start Standby successfully, attach this node de bao cho pgpool biet la tao da hoat dong h co the truy cap vao cluster node duoc roi
 if [ $? -eq 0 ]; then

@@ -65,3 +65,11 @@ service ssh status
 
 <!-- how to find -->
     find / -name postgresql.conf 2>/dev/null
+
+    cat /tmp/postgres.log
+
+<!-- to check replication -->
+SELECT * FROM pg_replication_slots;
+SELECT * FROM pg_stat_wal_receiver;
+<!-- cach xac dinh master -->
+SELECT pg_is_in_recovery();

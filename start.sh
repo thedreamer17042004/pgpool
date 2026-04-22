@@ -34,11 +34,29 @@ else
     echo "WARNING: /tmp/id_rsa_pgpool.pub not found"
 fi
 
+# pcp 
+# echo 'localhost:9898:pgpool:1234' > /home/postgres/.pcppass
+# chmod 600 /home/postgres/.pcppass
+
+# echo 'localhost:9898:pgpool:1234' > /root/.pcppass
+# chmod 600 /root/.pcppass
+
 # Ensure sshd runtime dir exists
 mkdir -p /var/run/sshd
 
 echo "Starting SSHD..."
 /usr/sbin/sshd
 
+# if ! grep -q "^wal_log_hints *= *on" /bitnami/postgresql/data/postgresql.conf 2>/dev/null; then
+#     echo "wal_log_hints = on" >> /bitnami/postgresql/data/postgresql.conf
+#     echo "Added wal_log_hints = on"
+# else
+#     echo "wal_log_hints already enabled"
+# fi
+
 echo "Starting PostgreSQL..."
-exec /opt/bitnami/scripts/postgresql/entrypoint.sh /opt/bitnami/scripts/postgresql/run.sh
+/opt/bitnami/scripts/postgresql/entrypoint.sh /opt/bitnami/scripts/postgresql/run.sh &
+
+echo "Container is alive"
+
+tail -f /dev/null

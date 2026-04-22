@@ -13,6 +13,8 @@ services:
       - "5433:5432"
     volumes: 
       - ./id_rsa_pgpool.pub:/tmp/id_rsa_pgpool.pub
+      - ./custom.conf:/bitnami/postgresql/conf/conf.d/custom.conf
+      - ./custom.conf:/bitnami/postgresql/conf/conf.d/postgresql-custom.conf
     networks:
       - pgnet
           
@@ -31,6 +33,8 @@ services:
       - "5434:5432"
     volumes: 
       - ./id_rsa_pgpool.pub:/tmp/id_rsa_pgpool.pub
+      - ./custom.conf:/bitnami/postgresql/conf/conf.d/custom.conf
+      - ./custom.conf:/bitnami/postgresql/conf/conf.d/postgresql-custom.conf
     networks:
       - pgnet
 
@@ -49,6 +53,8 @@ services:
       - "5435:5432"
     volumes: 
       - ./id_rsa_pgpool.pub:/tmp/id_rsa_pgpool.pub
+      - ./custom.conf:/bitnami/postgresql/conf/conf.d/custom.conf
+      - ./custom.conf:/bitnami/postgresql/conf/conf.d/postgresql-custom.conf
     networks:
       - pgnet
 
@@ -79,6 +85,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./id_rsa_pgpool:/root/.ssh/id_rsa_pgpool
       - ./id_rsa_pgpool:/home/postgres/.ssh/id_rsa_pgpool
+      - ./custom.conf:/bitnami/postgresql/conf/conf.d/custom.conf
+      - ./custom.conf:/bitnami/postgresql/conf/conf.d/postgresql-custom.conf
     networks:
       - pgnet
 

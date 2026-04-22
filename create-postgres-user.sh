@@ -20,6 +20,15 @@ PGPASS_FILE=/home/postgres/.pgpass
 POSTGRES_PASSWORD="1234"
 REPL_PASSWORD="repl_pass"
 
+# 81dc9bdb52d04dc20036dbd8313ed055 = 1234
+echo "pgpool:81dc9bdb52d04dc20036dbd8313ed055" >> /opt/bitnami/pgpool/etc/pcp.conf
+
+chmod 0600 /opt/bitnami/pgpool/etc/pcp.conf
+
+echo 'localhost:9898:pgpool:1234' > /home/postgres/.pcppass
+
+chmod 0600 /home/postgres/.pcppass
+
 # ==============================
 # CREATE .pgpass
 # ==============================
