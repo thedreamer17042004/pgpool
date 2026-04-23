@@ -72,8 +72,17 @@ fi
 ## Promote Standby node.
 echo failover.sh: primary node is down, promote new_main_node_id=$NEW_MAIN_NODE_ID on ${NEW_MAIN_NODE_HOST}.
 
+
 ssh -T ${SSH_OPTIONS} ${POSTGRESQL_STARTUP_USER}@${NEW_MAIN_NODE_HOST} ${PGHOME}/bin/pg_ctl -D ${NEW_MAIN_NODE_PGDATA} -w promote
 # ssh -T ${SSH_OPTIONS} ${POSTGRESQL_STARTUP_USER}@${NEW_MAIN_NODE_HOST} ${PGHOME}/bin/pg_ctl -D /bitnami/postgresql/data -w promote
+
+# FOR PRIMARY
+ssh -T ${SSH_OPTIONS} ${POSTGRESQL_STARTUP_USER}@${NEW_MAIN_NODE_HOST}  \
+"echo 'host replication repl_user 172.22.0.0/16 md5' >> /opt/bitnami/postgresql/conf/pg_hba.conf"
+
+# ssh -T ${SSH_OPTIONS} ${POSTGRESQL_STARTUP_USER}@${NEW_MAIN_NODE_HOST}  \
+# "psql -d postgres -c \"CREATE ROLE repl_user WITH LOGIN REPLICATION PASSWORD '1234';\""
+
 
 if [ $? -ne 0 ]; then
     echo ERROR: failover.sh: promote failed

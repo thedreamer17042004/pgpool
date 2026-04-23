@@ -73,3 +73,9 @@ SELECT * FROM pg_replication_slots;
 SELECT * FROM pg_stat_wal_receiver;
 <!-- cach xac dinh master -->
 SELECT pg_is_in_recovery();
+SHOW primary_conninfo;
+
+# cach de add a pg_hba
+echo "host replication repl_user 172.22.0.0/16 md5" >> /opt/bitnami/postgresql/conf/pg_hba.conf
+echo "host replication repl_user 172.22.0.0/16 trust" >> /opt/bitnami/postgresql/conf/pg_hba.conf
+ SELECT pg_reload_conf();

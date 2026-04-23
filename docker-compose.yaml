@@ -2,7 +2,7 @@ version: '3.8'
 # doi voi app web trung binh nen cho len 2 - 3 slave thoi
 services:
   pg-master:
-    image: bitnamilegacy/postgresql:latest
+    image: pgserver
     container_name: pg-master
     environment:
       - POSTGRESQL_REPLICATION_MODE=master

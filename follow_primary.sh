@@ -42,7 +42,7 @@ NEW_PRIMARY_NODE_PORT="$9"
 NEW_PRIMARY_NODE_PGDATA="${10}"
 
 PGHOME=/opt/bitnami/postgresql
-REPLUSER=repl
+REPLUSER=repl_user
 PCP_USER=pgpool
 PGPOOL_PATH=/opt/bitnami/pgpool/bin
 PCP_PORT=9898
@@ -216,19 +216,16 @@ export PGPASSWORD="1234"
 rm -rf "\$PGDATA/pg_replslot/"*
 
 cat > "\$RECOVERYCONF" <<EOT
-primary_conninfo = 'host=${NEW_PRIMARY_NODE_HOST} port=${NEW_PRIMARY_NODE_PORT} user=${REPLUSER} application_name=${NODE_HOST}'
+primary_conninfo = 'host=${NEW_PRIMARY_NODE_HOST} port=${NEW_PRIMARY_NODE_PORT} user=${REPLUSER} replication=database password=1234 application_name=${NODE_HOST} '
 recovery_target_timeline = 'latest'
 primary_slot_name = '${REPL_SLOT_NAME}'
 EOT
 
 PG_VERSION=\$(${PGHOME}/bin/postgres -V | awk '{print \$3}' | cut -d. -f1)
+ echo "1"
+echo "include_if_exists = '\$RECOVERYCONF'" >> "\$PGHOME/conf/conf.d/demo.conf"
 
-if [ "\$${PGVERSION}" -ge 12 ]; then
-    echo "include_if_exists = '\$RECOVERYCONF'" >> "\$${PGHOME}/postgresql.conf"
-    touch "\$PGDATA/standby.signal"
-else
-    echo "standby_mode = 'on'" >> "\$RECOVERYCONF"
-fi
+
 
 exec \$PGHOME/bin/pg_ctl \
   -D "\$PGDATA" \
