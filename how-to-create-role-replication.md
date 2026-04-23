@@ -36,7 +36,9 @@ SELECT rolname, rolreplication, rolcanlogin
 FROM pg_roles
 WHERE rolname = 'repl_user';
 
+host replication repl_user 172.21.0.0/16 md5
 
+sed -i '1ihost replication repl_user 172.21.0.0/16 md5' /opt/bitnami/postgresql/conf/pg_hba.conf
 echo "host replication repl_user 172.22.0.0/16 md5" >> /opt/bitnami/postgresql/conf/pg_hba.conf
 
 
@@ -52,6 +54,9 @@ echo "include_if_exists = '/bitnami/postgresql/data/myrecovery.conf'" >> "/opt/b
 
 b1: 
 echo "host replication repl_user 172.22.0.0/16 md5" >> /opt/bitnami/postgresql/conf/pg_hba.conf
+host replication postgres 0.0.0.0/0 trust
+echo "host replication repl_user 0.0.0.0/0 md5" >> /opt/bitnami/postgresql/conf/pg_hba.conf
+host    replication    repl_user    0.0.0.0/0    md5
 
 b2: 
 
@@ -63,4 +68,5 @@ PASSWORD '1234';
 # for testing 
 tai pg-slave-1
 psql -h pg-slave -p 5432 -U repl_user -d postgres
-
+<!-- kiem tra xem primary co gui wal khong -->
+SELECT * FROM pg_stat_replication;

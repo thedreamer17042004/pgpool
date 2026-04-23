@@ -29,7 +29,7 @@ set -o xtrace
 # 11) %N = old primary node hostname
 # 12) %S = old primary node port number
 # 13) %% = '%' character
-
+# ─── Tham số từ pgpool (special values) ───────────────────────────────────────
 NODE_ID="$1"
 NODE_HOST="$2"
 NODE_PORT="$3"
@@ -40,7 +40,7 @@ OLD_MAIN_NODE_ID="$7"
 OLD_PRIMARY_NODE_ID="$8"
 NEW_PRIMARY_NODE_PORT="$9"
 NEW_PRIMARY_NODE_PGDATA="${10}"
-
+# ─── Cấu hình ─────────────────────────────────────────────────────────────────
 PGHOME=/opt/bitnami/postgresql
 REPLUSER=repl_user
 PCP_USER=pgpool
@@ -52,7 +52,7 @@ SSH_KEY_FILE=id_rsa_pgpool
 SSH_OPTIONS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /home/postgres/.ssh/${SSH_KEY_FILE}"
 
 echo follow_primary.sh: start: Standby node ${NODE_ID}
-
+# ─── 1. Kiểm tra standby còn sống không ──────────────────────────────────────
 # Check the connection status of Standby
 # ${PGHOME}/bin/pg_isready -h ${NODE_HOST} -p ${NODE_PORT} > /dev/null 2>&1
 # psql -h pg-master -p 5432 -U postgres -c "SELECT 1" 
@@ -63,6 +63,7 @@ if [ $? -ne 0 ]; then
     echo follow_primary.sh: node_id=${NODE_ID} is not running. skipping follow primary command
     exit 0
 fi
+# ─── 2. Kiểm tra SSH không cần password ───────────────────────────────────────
 
 # Test passwordless SSH
 ssh -T ${SSH_OPTIONS} ${POSTGRESQL_STARTUP_USER}@${NEW_PRIMARY_NODE_HOST} ls /tmp > /dev/null
@@ -84,7 +85,7 @@ if [ $PGVERSION -ge 12 ]; then
 else
     RECOVERYCONF=${NODE_PGDATA}/recovery.conf
 fi
-
+# ─── 3. Chờ primary mới sẵn sàng ─────────────────────────────────────────────
 # Synchronize Standby with the new Primary.
 echo follow_primary.sh: pg_rewind for node ${NODE_ID}
 
@@ -196,16 +197,22 @@ fi
 #     ${PGHOME}/bin/pg_ctl -l /dev/null -w -D ${NODE_PGDATA} start
 
 # "
-
+# ssh -T
 ssh -T ${SSH_OPTIONS} ${POSTGRESQL_STARTUP_USER}@${NODE_HOST} 'bash -s' <<EOF
 set -e
+set -x
+
+echo "===== FAILOVER START $(date) =====" >&2
 
 PGDATA="${NODE_PGDATA}"
 PGHOME="${PGHOME}"
 RECOVERYCONF="${RECOVERYCONF}"
 
+echo "[STEP] stopping postgres" >&2
 
    ${PGHOME}/bin/pg_ctl -w -m f -D ${NODE_PGDATA} stop
+
+echo "[STEP] running pg_rewind (if any)" >&2
 
 export PGPASSWORD="1234"
 # pg_rewind
@@ -216,7 +223,7 @@ export PGPASSWORD="1234"
 rm -rf "\$PGDATA/pg_replslot/"*
 
 cat > "\$RECOVERYCONF" <<EOT
-primary_conninfo = 'host=${NEW_PRIMARY_NODE_HOST} port=${NEW_PRIMARY_NODE_PORT} user=${REPLUSER} replication=database password=1234 application_name=${NODE_HOST} '
+primary_conninfo = 'host=${NEW_PRIMARY_NODE_HOST} port=${NEW_PRIMARY_NODE_PORT} user=${REPLUSER} password=1234 application_name=${NODE_HOST} '
 recovery_target_timeline = 'latest'
 primary_slot_name = '${REPL_SLOT_NAME}'
 EOT
@@ -225,7 +232,7 @@ PG_VERSION=\$(${PGHOME}/bin/postgres -V | awk '{print \$3}' | cut -d. -f1)
  echo "1"
 echo "include_if_exists = '\$RECOVERYCONF'" >> "\$PGHOME/conf/conf.d/demo.conf"
 
-
+echo "[STEP] START PG_CTL" >&2
 
 exec \$PGHOME/bin/pg_ctl \
   -D "\$PGDATA" \
@@ -234,6 +241,9 @@ exec \$PGHOME/bin/pg_ctl \
    -o "-c config_file=/opt/bitnami/postgresql/conf/postgresql.conf \
       -c hba_file=/opt/bitnami/postgresql/conf/pg_hba.conf" \
   start
+  
+echo "[STEP] DONE" >&2
+echo "===== FAILOVER END $(date) =====" >&2
 
 EOF
 

@@ -37,7 +37,6 @@ fi
 touch /opt/bitnami/postgresql/conf/conf.d/demo.conf
 chmod 600 /opt/bitnami/postgresql/conf/conf.d/demo.conf
 chown postgres:postgres /opt/bitnami/postgresql/conf/conf.d/demo.conf
-
 # pcp 
 # echo 'localhost:9898:pgpool:1234' > /home/postgres/.pcppass
 # chmod 600 /home/postgres/.pcppass
@@ -62,7 +61,6 @@ echo "Starting SSHD..."
 echo "Starting PostgreSQL..."
 /opt/bitnami/scripts/postgresql/entrypoint.sh /opt/bitnami/scripts/postgresql/run.sh &
 
-echo "host replication repl_user 172.22.0.0/16 md5" >> /opt/bitnami/postgresql/conf/pg_hba.conf
 
 echo "Container is alive"
 

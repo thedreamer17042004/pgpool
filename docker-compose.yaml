@@ -7,7 +7,7 @@ services:
     environment:
       - POSTGRESQL_REPLICATION_MODE=master
       - POSTGRESQL_REPLICATION_USER=repl_user
-      - POSTGRESQL_REPLICATION_PASSWORD=repl_pass
+      - POSTGRESQL_REPLICATION_PASSWORD=1234
       - POSTGRESQL_PASSWORD=1234
     ports:
       - "5433:5432"
@@ -15,6 +15,7 @@ services:
       - ./id_rsa_pgpool.pub:/tmp/id_rsa_pgpool.pub
       - ./custom.conf:/bitnami/postgresql/conf/conf.d/custom.conf
       - ./custom.conf:/bitnami/postgresql/conf/conf.d/postgresql-custom.conf
+      # - ./test.conf:/bitnami/postgresql/conf/pg_hba.conf
     networks:
       - pgnet
           
@@ -27,7 +28,7 @@ services:
       - POSTGRESQL_REPLICATION_MODE=slave
       - POSTGRESQL_MASTER_HOST=pg-master
       - POSTGRESQL_REPLICATION_USER=repl_user
-      - POSTGRESQL_REPLICATION_PASSWORD=repl_pass
+      - POSTGRESQL_REPLICATION_PASSWORD=1234
       - POSTGRESQL_PASSWORD=1234
     ports:
       - "5434:5432"
@@ -35,6 +36,7 @@ services:
       - ./id_rsa_pgpool.pub:/tmp/id_rsa_pgpool.pub
       - ./custom.conf:/bitnami/postgresql/conf/conf.d/custom.conf
       - ./custom.conf:/bitnami/postgresql/conf/conf.d/postgresql-custom.conf
+      - ./config-hba.conf:/bitnami/postgresql/conf/pg_hba.conf
     networks:
       - pgnet
 
@@ -47,7 +49,7 @@ services:
       - POSTGRESQL_REPLICATION_MODE=slave
       - POSTGRESQL_MASTER_HOST=pg-master
       - POSTGRESQL_REPLICATION_USER=repl_user
-      - POSTGRESQL_REPLICATION_PASSWORD=repl_pass
+      - POSTGRESQL_REPLICATION_PASSWORD=1234
       - POSTGRESQL_PASSWORD=1234
     ports:
       - "5435:5432"
@@ -55,6 +57,7 @@ services:
       - ./id_rsa_pgpool.pub:/tmp/id_rsa_pgpool.pub
       - ./custom.conf:/bitnami/postgresql/conf/conf.d/custom.conf
       - ./custom.conf:/bitnami/postgresql/conf/conf.d/postgresql-custom.conf
+      - ./config-hba.conf:/bitnami/postgresql/conf/pg_hba.conf
     networks:
       - pgnet
 
