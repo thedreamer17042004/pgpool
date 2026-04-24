@@ -81,6 +81,16 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# perform deleting old primary_conninfor
+# ALTER SYSTEM RESET primary_conninfo;  lenh nay la reset xoa tai postgresql.auto.conf 
+# lenh ben duoi de thuc hien xoa primary di trong primary_conninfo;
+# ssh -T -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+# -i /home/postgres/.ssh/id_rsa_pgpool postgres@pg-slave \
+# "export PGPASSWORD=1234; \
+# sed -i \"s/^primary_conninfo.*/primary_conninfo = ''/\" /opt/bitnami/postgresql/conf/postgresql.conf && \
+# /opt/bitnami/postgresql/bin/psql -h pg-slave -p 5432 -U postgres -d postgres \
+# -c \"SELECT pg_reload_conf();\""
+
 # ssh -T ${SSH_OPTIONS} ${POSTGRESQL_STARTUP_USER}@${NEW_MAIN_NODE_HOST} "
 # grep -q 'repl_user' ${PGHOME}/conf/pg_hba.conf
 
