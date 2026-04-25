@@ -84,6 +84,7 @@ services:
     volumes:
       - ./failover.sh:/opt/bitnami/scripts/failover.sh
       - ./follow_primary.sh:/opt/bitnami/scripts/follow_primary.sh
+      - ./recovery_1st_stage:/opt/bitnami/scripts/recovery_1st_stage.sh
       - ./cus_pgpool.conf:/cus_pgpool.conf
       - /var/run/docker.sock:/var/run/docker.sock
       - ./id_rsa_pgpool:/root/.ssh/id_rsa_pgpool
