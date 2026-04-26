@@ -7,6 +7,26 @@ USER root
 # =========================
 RUN install_packages openssh-server sudo
 
+# =========================
+# 1. Install pgpool_recovery
+# =========================
+RUN apt-get update && apt-get install -y \
+    git \
+    make \
+    gcc \
+ && rm -rf /var/lib/apt/lists/*
+
+RUN git clone https://github.com/pgpool/pgpool2.git /tmp/pgpool2 && \
+    cd /tmp/pgpool2/src/sql/pgpool-recovery && \
+    make && \
+    make install
+
+# 3. Cleanup source + build tools
+RUN rm -rf /tmp/pgpool2 && \
+    apt-get remove -y git make gcc  && \
+    apt-get autoremove -y && \
+    apt-get clean
+
 
 # tao thu muc ssh runtime
 RUN mkdir -p /var/run/sshd
@@ -49,6 +69,9 @@ RUN sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/sshd
 # 4. Copy entrypoint script
 # =========================
 COPY start.sh /start.sh
+
+COPY init-before-failback.sh /init-before-failback.sh
+
 RUN chmod +x /start.sh
 
 # chmod = change mode (đổi quyền file)

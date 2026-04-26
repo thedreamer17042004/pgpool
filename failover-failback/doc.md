@@ -14,13 +14,10 @@ cat /opt/bitnami/pgpool/conf/pool_passwd
 # Xem node:
 pcp_node_info -h localhost -U admin -p 9898 -n 0
 # Attach/detach node:
-
 pcp_detach_node -h localhost -U admin -p 9898 -n 0
 pcp_attach_node -h localhost -U admin -p 9898 -n 0
 # Xem status node trong SQL:
-
 show pool_nodes;
-
 
 # cach de bat log trong postgres server to test pgpool chay toi
 # Trong postgresql.conf hãy bật thêm:
@@ -43,7 +40,6 @@ select pg_backend_pid();
 
 show pool_processes;
 
-
 #  này tương đương với số connection tới backend
 PGPOOL_NUM_INIT_CHILDREN=5
 PGPOOL_MAX_POOL -> là max số connection được cache
@@ -52,30 +48,35 @@ PGPOOL_MAX_POOL -> là max số connection được cache
 service ssh status
 
 # cach de add user
- groupadd -g 1001 postgres
-  useradd -u 1001 -g 1001 -m -d /home/postgres -s /bin/bash postgres
-
-   chown -R postgres:postgres /home/postgres/.ssh
-   chmod 700 /home/postgres/.ssh
-   chmod 600 /home/postgres/.ssh/id_rsa_pgpool
-
-<!-- copy file a sang b -->
-    cat /tmp/id_rsa_pgpool.pub >> /home/postgres/.ssh/authorized_keys
+groupadd -g 1001 postgres
+useradd -u 1001 -g 1001 -m -d /home/postgres -s /bin/bash postgres
 
 
-<!-- how to find -->
-    find / -name postgresql.conf 2>/dev/null
+# copy file a sang b -->
+cat /tmp/id_rsa_pgpool.pub >> /home/postgres/.ssh/authorized_keys
 
-    cat /tmp/postgres.log
 
-<!-- to check replication -->
+# how to find filename
+find / -name postgresql.conf 2>/dev/null
+
+# to check replication 
+# check in master node
 SELECT * FROM pg_replication_slots;
+# to show all streaming replication
+SELECT * FROM pg_stat_replication;
+# check in standby
 SELECT * FROM pg_stat_wal_receiver;
-<!-- cach xac dinh master -->
+
+# cach xac dinh master node
 SELECT pg_is_in_recovery();
+# cach xem thong tin primary ma node dang tro toi
 SHOW primary_conninfo;
 
 # cach de add a pg_hba
 echo "host replication repl_user 172.22.0.0/16 md5" >> /opt/bitnami/postgresql/conf/pg_hba.conf
 echo "host replication repl_user 172.22.0.0/16 trust" >> /opt/bitnami/postgresql/conf/pg_hba.conf
- SELECT pg_reload_conf();
+SELECT pg_reload_conf();
+
+# tham khao
+https://github.com/abessifi/pgpool-online-recovery
+https://www.pgpool.net/docs/43/en/html/index.html

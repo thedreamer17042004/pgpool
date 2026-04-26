@@ -29,6 +29,9 @@ if [ -f /tmp/id_rsa_pgpool.pub ]; then
     chmod 600 /home/postgres/.ssh/authorized_keys
     chown postgres:postgres /home/postgres/.ssh/authorized_keys
 
+    chmod 600 /home/postgres/.ssh/id_rsa_pgpool
+    chown postgres:postgres /home/postgres/.ssh/id_rsa_pgpool
+
     echo "SSH key added for root and postgres"
 else
     echo "WARNING: /tmp/id_rsa_pgpool.pub not found"
@@ -37,6 +40,15 @@ fi
 touch /opt/bitnami/postgresql/conf/conf.d/demo.conf
 chmod 600 /opt/bitnami/postgresql/conf/conf.d/demo.conf
 chown postgres:postgres /opt/bitnami/postgresql/conf/conf.d/demo.conf
+
+chmod 700 /bitnami/postgresql
+chown postgres:postgres /bitnami/postgresql
+chown postgres:postgres /bitnami/postgresql/conf
+chown postgres:postgres /bitnami/postgresql/data
+cp /opt/bitnami/scripts/recovery_1st_stage.sh /bitnami/postgresql/data/
+
+# thuc hien cho online recovery
+
 # pcp 
 # echo 'localhost:9898:pgpool:1234' > /home/postgres/.pcppass
 # chmod 600 /home/postgres/.pcppass

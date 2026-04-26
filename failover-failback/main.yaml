@@ -1,4 +1,5 @@
 version: '3.8'
+# yaml nay de test failover 
 # doi voi app web trung binh nen cho len 2 - 3 slave thoi
 services:
   pg-master:

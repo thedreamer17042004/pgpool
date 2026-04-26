@@ -1,8 +1,7 @@
 SELECT pg_is_in_recovery();
---> để kiể tra xem node hiện tại là master hay là slave; false là master; true là slave;
+--> để kiểm tra xem node hiện tại là master hay là slave; false là master; true là slave;
 
 🎯 Mục tiêu
-
 Bạn sẽ tự làm:
 
 Master chết → promote slave → hệ thống chạy lại

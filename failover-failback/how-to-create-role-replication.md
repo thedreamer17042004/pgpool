@@ -27,7 +27,8 @@ host replication repl_user <standby_ip>/32 md5
 - load
 pg_ctl reload
 OR
- SELECT pg_reload_conf();
+SELECT pg_reload_conf();
+
 # testing
 psql -h PRIMARY -U repl_user -d postgres -c "SELECT 1;"
 
@@ -42,31 +43,3 @@ sed -i '1ihost replication repl_user 172.21.0.0/16 md5' /opt/bitnami/postgresql/
 echo "host replication repl_user 172.22.0.0/16 md5" >> /opt/bitnami/postgresql/conf/pg_hba.conf
 
 
-
-
-=======================
-/bitnami/postgresql/data/myrecovery.conf
-
-/opt/bitnami/postgresql/conf/conf.d/custom.conf
-
-echo "include_if_exists = '/bitnami/postgresql/data/myrecovery.conf'" >> "/opt/bitnami/postgresql/conf/conf.d/custom.conf"
-
-
-b1: 
-echo "host replication repl_user 172.22.0.0/16 md5" >> /opt/bitnami/postgresql/conf/pg_hba.conf
-host replication postgres 0.0.0.0/0 trust
-echo "host replication repl_user 0.0.0.0/0 md5" >> /opt/bitnami/postgresql/conf/pg_hba.conf
-host    replication    repl_user    0.0.0.0/0    md5
-
-b2: 
-
-CREATE ROLE repl_user WITH
-LOGIN
-REPLICATION
-PASSWORD '1234';
-
-# for testing 
-tai pg-slave-1
-psql -h pg-slave -p 5432 -U repl_user -d postgres
-<!-- kiem tra xem primary co gui wal khong -->
-SELECT * FROM pg_stat_replication;

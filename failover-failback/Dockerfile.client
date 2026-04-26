@@ -4,6 +4,7 @@ USER root
 
 RUN install_packages openssh-client
 
+
 RUN groupadd -g 1001 postgres || true && \
     useradd -u 1001 -g 1001 -m -d /home/postgres -s /bin/bash postgres || true && \
     mkdir -p /home/postgres/.ssh && \
@@ -13,7 +14,9 @@ RUN groupadd -g 1001 postgres || true && \
     chown -R postgres:postgres /opt/bitnami/pgpool && \
     chmod -R u+w /opt/bitnami/pgpool/conf
 
+
 COPY create-postgres-user.sh /create-postgres-user.sh
+COPY init-bash-pgpool.sh /init-bash-pgpool.sh
 
 RUN chmod +x /create-postgres-user.sh
 
