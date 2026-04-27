@@ -1,0 +1,37 @@
+FROM postgres:15
+
+# install system package
+RUN apt-get update && \
+    apt-get install -y python3 python3-venv python3-pip jq && \
+    rm -rf /var/lib/apt/lists/*
+
+# create virtual enviroment for Patroni
+RUN python3 -m venv /opt/patroni-venv
+
+# upgrade pip and install patroni
+# COPY patroni-node.yml /config/patroni.yml
+RUN /opt/patroni-venv/bin/pip install --upgrade pip && \
+    /opt/patroni-venv/bin/pip install \
+    "patroni[etcd]" \
+    psycopg2-binary
+
+#make patroni available globally
+ENV PATH="/opt/patroni-venv/bin:$PATH"
+
+# make sure postgres user owns its directories
+RUN mkdir -p /var/lib/postgresql/data && \
+    chown -R postgres:postgres /var/lib/postgresql
+
+# run contatiner as postgres (not root)
+# USER postgres
+
+# Expose port
+# EXPOSE 5432 8008
+RUN  chown -R postgres:postgres /var/lib/postgresql/data \
+    && chmod 700 /var/lib/postgresql/data
+# Run Patroni
+# CMD ["patroni", "/config/patroni.yml"]
+CMD ["bash"]
+
+
+# docker build -f Dockerfile.patroni -t patroni-pg:15 .

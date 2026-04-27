@@ -1,0 +1,92 @@
+scope: postgres-cluster
+namespace: /service/
+name: node1
+
+restapi:
+  listen: 0.0.0.0:8008
+  connect_address: node1:8008
+
+etcd:
+  hosts: etcd1:2379,etcd2:2379,etcd3:2379
+
+bootstrap:
+  dcs:
+    ttl: 30
+    loop_wait: 10
+    retry_timeout: 10
+    maximum_lag_on_failover: 1048576
+    synchronous_mode: false
+    synchronous_mode_strict: false
+    postgresql:
+      use_pg_rewind: true
+      parameters:
+        wal_level: replica
+        hot_standby: "on"
+        wal_keep_size: 1024MB
+        max_wal_senders: 10
+        max_replication_slots: 10
+        wal_log_hints: "on"
+        archive_mode: "on"
+        archive_command: 'test ! -f /archive/%f && cp %p /archive/%f'
+        max_connections: 200
+        shared_buffers: 1GB
+        effective_cache_size: 3GB
+        maintenance_work_mem: 256MB
+        checkpoint_completion_target: 0.9
+        wal_buffers: 16MB
+        default_statistics_target: 100
+        random_page_cost: 1.1
+        effective_io_concurrency: 200
+  # khởi tạo new cluster
+  initdb:
+    - encoding: UTF8
+    - data-checksums
+
+  users:
+    repl_user:
+      password: "strong_password_here"
+      options:
+        - replication
+
+    admin:
+      password: "admin_password_here"
+      options:
+        - createrole
+        - createdb
+
+postgresql:
+  listen: 0.0.0.0:5432
+  connect_address: node1:5432
+  data_dir: /data/postgres
+  bin_dir: /usr/lib/postgresql/15/bin
+
+  config_dir: /data/postgres
+  pgpass: /tmp/pgpass0
+
+  authentication:
+    superuser:
+      username: postgres
+      password: "postgres_password_here"
+    replication:
+      username: repl_user
+      password: "strong_password_here"
+
+  parameters:
+    unix_socket_directories: '/var/run/postgresql'
+    log_destination: stderr
+    logging_collector: "on"
+    log_directory: /var/log/postgresql
+    log_filename: postgresql.log
+    log_min_duration_statement: 500
+    log_connections: "on"
+    log_disconnections: "on"
+
+  pg_hba:
+    - host replication repl_user 0.0.0.0/0 md5
+    - host all all 0.0.0.0/0 md5
+
+tags:
+  nofailover: false
+  noloadbalance: false
+  clonefrom: false
+  nosync: false

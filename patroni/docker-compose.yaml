@@ -1,0 +1,149 @@
+version: "3.9"
+
+services:
+  etcd:
+    image: quay.io/coreos/etcd:v3.5.11
+    container_name: etcd
+    command: >
+      /usr/local/bin/etcd
+      --name etcd0
+      --data-dir /etcd-data
+      --listen-client-urls http://0.0.0.0:2379
+      --advertise-client-urls http://etcd:2379
+      --listen-peer-urls http://0.0.0.0:2380
+      --initial-advertise-peer-urls http://etcd:2380
+      --initial-cluster etcd0=http://etcd:2380
+      --initial-cluster-state new
+      --enable-v2=true
+    # volumes:
+    #   # - ./etcd-data:/etcd-data
+    ports:
+      - "2379:2379"
+    networks: 
+      - patroni-net
+    restart: unless-stopped
+
+  node1:
+    image: patroni-pg:15
+    container_name: node1
+    hostname: node1
+    user: "postgres"
+    environment:
+      # PATRONI_NAME: node1
+      # PATRONI_POSTGRESQL_CONNECT_ADDRESS: node1:5432
+      # PATRONI_RESTAPI_CONNECT_ADDRESS: node1:8008
+      PATRONI_LOG_LEVEL: INFO
+    volumes:
+      # - ./node1_data:/var/lib/postgresql/data
+      - ./patroni-node.yml:/etc/patroni.yml
+    ports:
+      - "5433:5432" # node 1 postgresql
+      - "8001:8008" # patroni rest for node1 
+    depends_on:
+      - etcd
+    command: ["patroni", "/etc/patroni.yml"]
+    networks: 
+      - patroni-net
+    restart: unless-stopped
+
+  node2:
+    image: patroni-pg:15
+    container_name: node2
+    hostname: node2
+    user: "postgres"
+    environment:
+      # PATRONI_NAME: node1
+      # PATRONI_POSTGRESQL_CONNECT_ADDRESS: node1:5432
+      # PATRONI_RESTAPI_CONNECT_ADDRESS: node1:8008
+      PATRONI_LOG_LEVEL: INFO
+    volumes:
+      # - ./node2_data:/var/lib/postgresql/data
+      - ./patroni-node2.yml:/etc/patroni.yml
+    ports:
+      - "5434:5432" # node 1 postgresql
+      - "8002:8008" # patroni rest for node1 
+    depends_on:
+      - etcd
+    command: ["patroni", "/etc/patroni.yml"]
+    networks: 
+      - patroni-net
+    restart: unless-stopped
+
+  node3:
+    image: patroni-pg:15
+    container_name: node3
+    hostname: node3
+    user: "postgres"
+    environment:
+      # PATRONI_NAME: node1
+      # PATRONI_POSTGRESQL_CONNECT_ADDRESS: node1:5432
+      # PATRONI_RESTAPI_CONNECT_ADDRESS: node1:8008
+      PATRONI_LOG_LEVEL: INFO
+    volumes:
+      # - ./node3_data:/var/lib/postgresql/data
+      - ./patroni-node3.yml:/etc/patroni.yml
+    ports:
+      - "5435:5432" # node 1 postgresql
+      - "8003:8008" # patroni rest for node1 
+    depends_on:
+      - etcd
+    command: ["patroni", "/etc/patroni.yml"]
+    networks: 
+      - patroni-net
+    restart: unless-stopped
+
+  haproxy: 
+    image: haproxy:2.9
+    container_name: haproxy
+    depends_on:
+      - node1
+      - node2
+      # - node3
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    ports:
+      - "5000:5432" # single db enpoint on host 127.0.0.1:5000
+      - "8404:8404" # haproxy web ui browser
+    networks: 
+      - patroni-net
+    restart: unless-stopped
+
+# volumes:
+#   node1_data:
+#   node2_data:
+#   node3_data:
+
+networks:
+  patroni-net:
+    driver: bridge
+
+# testing
+
+# sudo chown -R 999:999 node1-data node2-data
+# sudo chmod 700 node1-data node2-data
+
+# confirm roles
+# curl http://localhost:8008
+# curl http://localhost:8009
+
+# part -test via haproxy (single endpoint)
+# access in ui from haproxy
+# http://192.168.136.128:8404/stats
+# use username: admin;password:1234
+
+# access from cli:
+# sudo apt install postgresql -client
+# psql -h 127.0.0.1 -p 5000 -U postgres
+
+# create database demo_db;
+# \c demo_db;
+
+
+# FINAL RESULT
+# ✅ PostgreSQL HA
+# ✅ Streaming Replication
+# ✅ Automatic Failover
+# ✅ HAProxy Load Balancer
+# ✅ Single Client DB Endpoint
+# ✅ Zero Downtime
+# ✅ Production-grade Docker HA Stack
